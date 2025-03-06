@@ -1,6 +1,6 @@
 # Required libraries for the project
 streamlit 
 streamlit-webrtc 
-opencv-python 
+opencv-python-headless
 mediapipe 
 numpy
