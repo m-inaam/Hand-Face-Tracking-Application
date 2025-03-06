@@ -1,6 +1,6 @@
 # Required libraries for the project
-opencv_python_headless
-streamlit
-mediapipe
+streamlit 
+streamlit-webrtc 
+opencv-python 
+mediapipe 
 numpy
-Pillow
