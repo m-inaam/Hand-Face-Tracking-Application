@@ -85,7 +85,7 @@ This project is licensed under the **MIT License**.
 Contributions are welcome! Please fork the repository and submit a pull request with your improvements.
 
 ## 📬 Contact
-For any inquiries or suggestions, reach out to **[Your Name](mailto:muhammad.inaamullah@outlook.com)**.
+For any inquiries or suggestions, reach out to **[Muhammad Inaamullah](mailto:muhammad.inaamullah@outlook.com)**.
 
 ---
 💡 **Star this repository if you found it useful!** ⭐
