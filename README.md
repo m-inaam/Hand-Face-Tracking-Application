@@ -7,7 +7,7 @@ This project is a **real-time face and hand tracking application** built using *
 
 ## 📂 Project Structure
 ```
-/hand-face-tracking-application
+/Hand-Face-Tracking-Application
 │── /modules
 │   ├── facetrackingModule.py  # Face tracking module
 │   ├── handtrackingModule.py  # Hand tracking module
@@ -27,7 +27,7 @@ This project is a **real-time face and hand tracking application** built using *
 
 ### 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/your-username/computer-vision.git
+git clone https://github.com/your-username/hand-face-tracking-application.git
 cd computer-vision
 ```
 
