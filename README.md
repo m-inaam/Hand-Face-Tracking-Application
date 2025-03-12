@@ -28,7 +28,7 @@ This project is a **real-time face and hand tracking application** built using *
 ### 1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/your-username/hand-face-tracking-application.git
-cd computer-vision
+cd hand-face-tracking-application
 ```
 
 ### 2️⃣ Create a Virtual Environment (Optional but Recommended)
