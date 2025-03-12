@@ -1,154 +1,78 @@
-import streamlit as st
-import mediapipe as mp
 import cv2
+import mediapipe as mp
+import streamlit as st
 import numpy as np
-import tempfile
 import time
-from PIL import Image
 
-# Initialize MediaPipe modules
-mp_drawing = mp.solutions.drawing_utils
-mp_face_mesh = mp.solutions.face_mesh
+# Initialize MediaPipe solutions
 mp_hands = mp.solutions.hands
+mp_face_mesh = mp.solutions.face_mesh
+mp_draw = mp.solutions.drawing_utils
 
-# Streamlit App Title
-st.title("Hand & Face Tracking with MediaPipe")
-
-# Sidebar settings
-st.sidebar.title("Select Mode")
-app_mode = st.sidebar.radio("Choose an option:", ["About App", "Hand Tracking", "Face Mesh"])
-
-# About App
-if app_mode == "About App":
-    st.markdown("""
-    ## About This App
-    This Streamlit application combines **Hand Tracking** and **Face Mesh Recognition** using **MediaPipe**.
+def process_frame(frame, detect_hands, detect_faces, hands, face_mesh):
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     
-    - The **Hand Tracking** module detects and tracks hands in real-time.
-    - The **Face Mesh** module detects facial landmarks from images or video.
-    """)
-
-# Hand Tracking Module
-elif app_mode == "Hand Tracking":
-    st.subheader("Hand Tracking using MediaPipe")
+    if detect_hands:
+        hand_results = hands.process(frame_rgb)
+        if hand_results.multi_hand_landmarks:
+            for hand_landmarks in hand_results.multi_hand_landmarks:
+                mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
     
-    # Hand Tracking settings
-    max_hands = st.sidebar.slider("Max Hands", 1, 2, 2)
-    detection_conf = st.sidebar.slider("Detection Confidence", 0.0, 1.0, 0.5)
-    tracking_conf = st.sidebar.slider("Tracking Confidence", 0.0, 1.0, 0.5)
-
-    use_webcam = st.sidebar.checkbox("Use Webcam", True)
-    video_file_buffer = st.sidebar.file_uploader("Upload a Video", type=["mp4", "mov", "avi"])
-    
-    tffile = tempfile.NamedTemporaryFile(delete=False)
-    
-    if video_file_buffer:
-        tffile.write(video_file_buffer.read())
-        vid = cv2.VideoCapture(tffile.name)
-    else:
-        vid = cv2.VideoCapture(0 if use_webcam else "demo.mp4")
-
-    stframe = st.empty()
-    
-    with mp_hands.Hands(
-        max_num_hands=max_hands,
-        min_detection_confidence=detection_conf,
-        min_tracking_confidence=tracking_conf
-    ) as hands:
-        while vid.isOpened():
-            ret, frame = vid.read()
-            if not ret:
-                break
-            
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = hands.process(frame)
-            frame.flags.writeable = True
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-            
-            if results.multi_hand_landmarks:
-                for hand_landmarks in results.multi_hand_landmarks:
-                    mp_drawing.draw_landmarks(
-                        image=frame,
-                        landmark_list=hand_landmarks,
-                        connections=mp_hands.HAND_CONNECTIONS
-                    )
-
-            stframe.image(frame, channels="BGR", use_column_width=True)
-
-        vid.release()
-
-# Face Mesh Module
-elif app_mode == "Face Mesh":
-    st.subheader("Face Mesh using MediaPipe")
-    
-    mode = st.sidebar.selectbox("Choose Mode", ["Run on Image", "Run on Video"])
-    
-    max_faces = st.sidebar.number_input("Max Faces", value=1, min_value=1)
-    detection_conf = st.sidebar.slider("Detection Confidence", 0.0, 1.0, 0.5)
-    tracking_conf = st.sidebar.slider("Tracking Confidence", 0.0, 1.0, 0.5)
-
-    if mode == "Run on Image":
-        img_file_buffer = st.sidebar.file_uploader("Upload an Image", type=["jpg", "jpeg", "png"])
-        if img_file_buffer:
-            image = np.array(Image.open(img_file_buffer))
-        else:
-            st.warning("Upload an image to proceed.")
-            st.stop()
-
-        with mp_face_mesh.FaceMesh(
-            static_image_mode=True,
-            max_num_faces=max_faces,
-            min_detection_confidence=detection_conf
-        ) as face_mesh:
-            results = face_mesh.process(image)
-            out_image = image.copy()
-            
-            for face_landmarks in results.multi_face_landmarks or []:
-                mp_drawing.draw_landmarks(
-                    image=out_image,
-                    landmark_list=face_landmarks,
-                    connections=mp_face_mesh.FACEMESH_TESSELATION
+    if detect_faces:
+        face_results = face_mesh.process(frame_rgb)
+        if face_results.multi_face_landmarks:
+            for face_landmarks in face_results.multi_face_landmarks:
+                mp_draw.draw_landmarks(
+                    frame, face_landmarks, mp_face_mesh.FACEMESH_CONTOURS,
+                    landmark_drawing_spec=mp_draw.DrawingSpec(thickness=1, circle_radius=1),
+                    connection_drawing_spec=mp_draw.DrawingSpec(thickness=1, circle_radius=1)
                 )
-            
-            st.image(out_image, use_column_width=True)
+    return frame
 
-    elif mode == "Run on Video":
-        use_webcam = st.sidebar.checkbox("Use Webcam", True)
-        video_file_buffer = st.sidebar.file_uploader("Upload a Video", type=["mp4", "mov", "avi"])
-        
-        tffile = tempfile.NamedTemporaryFile(delete=False)
-        
-        if video_file_buffer:
-            tffile.write(video_file_buffer.read())
-            vid = cv2.VideoCapture(tffile.name)
-        else:
-            vid = cv2.VideoCapture(0 if use_webcam else "demo.mp4")
+# Streamlit UI
+st.title("Real-Time Face and Hand Tracking")
 
-        stframe = st.empty()
-        
-        with mp_face_mesh.FaceMesh(
-            max_num_faces=max_faces,
-            min_detection_confidence=detection_conf,
-            min_tracking_confidence=tracking_conf
-        ) as face_mesh:
-            while vid.isOpened():
-                ret, frame = vid.read()
-                if not ret:
-                    break
-                
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                results = face_mesh.process(frame)
-                frame.flags.writeable = True
-                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-                
-                if results.multi_face_landmarks:
-                    for face_landmarks in results.multi_face_landmarks:
-                        mp_drawing.draw_landmarks(
-                            image=frame,
-                            landmark_list=face_landmarks,
-                            connections=mp_face_mesh.FACEMESH_TESSELATION
-                        )
+# Sidebar Controls
+detect_hands = st.sidebar.checkbox("Enable Hand Tracking", True)
+detect_faces = st.sidebar.checkbox("Enable Face Tracking", True)
 
-                stframe.image(frame, channels="BGR", use_column_width=True)
+# Stop button - Added a session state flag to manage the loop
+if "stop_stream" not in st.session_state:
+    st.session_state.stop_stream = False
 
-            vid.release()
+if st.sidebar.button("Stop Stream"):
+    st.session_state.stop_stream = True
+
+# Initialize MediaPipe models
+hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+face_mesh = mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+
+# Open webcam
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    st.error("Error opening camera")
+    st.stop()
+
+fps_placeholder = st.empty()
+frame_placeholder = st.image([])
+prev_time = 0
+
+while cap.isOpened() and not st.session_state.stop_stream:
+    ret, frame = cap.read()
+    if not ret:
+        st.error("Error reading frame")
+        break
+    
+    frame = process_frame(frame, detect_hands, detect_faces, hands, face_mesh)
+    
+    # Calculate FPS
+    curr_time = time.time()
+    fps = 1 / (curr_time - prev_time)
+    prev_time = curr_time
+    fps_placeholder.text(f"FPS: {int(fps)}")
+    
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    frame_placeholder.image(frame, channels="RGB")
+
+cap.release()
+st.write("Webcam stopped.")
