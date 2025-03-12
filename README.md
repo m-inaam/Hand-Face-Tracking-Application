@@ -7,7 +7,7 @@ This project is a **real-time face and hand tracking application** built using *
 
 ## 📂 Project Structure
 ```
-/computer-vision
+/hand-face-tracking-application
 │── /modules
 │   ├── facetrackingModule.py  # Face tracking module
 │   ├── handtrackingModule.py  # Hand tracking module
