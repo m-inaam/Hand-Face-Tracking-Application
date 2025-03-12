@@ -3,7 +3,7 @@
 ![Project Banner](https://via.placeholder.com/1000x300?text=Real-Time+Face+%26+Hand+Tracking+App)
 
 ## 📌 Project Overview
-This project is a **real-time face and hand tracking application** built using **Streamlit, OpenCV, and MediaPipe**. It allows users to detect and track facial landmarks and hand movements through a webcam. The project is modularized, with face and hand tracking implemented in separate modules, making it scalable and maintainable.
+This project is a **real-time face and hand tracking application** built using **Streamlit, OpenCV, and MediaPipe**. It allows users to detect and track facial landmarks and hand movements through a webcam.
 
 ## 📂 Project Structure
 ```
